@@ -4,32 +4,31 @@ import { Link } from "react-router-dom";
 import { FaTrash, FaPlus, FaEdit } from "react-icons/fa";
 import { toast } from "react-toastify";
 
+const Modal = ({ title, titleColor, onCancel, onConfirm, confirmLabel, confirmColor, children }) => (
+  <div className="fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-50">
+    <div className="bg-white rounded-2xl shadow-2xl p-6 w-96">
+      <h2 className={`text-xl font-bold mb-4 text-center ${titleColor}`}>{title}</h2>
+      {children}
+      <div className="flex justify-center gap-4 mt-6">
+        <button onClick={onCancel} className="px-5 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium">Cancel</button>
+        <button onClick={onConfirm} className={`px-5 py-2 ${confirmColor} text-white rounded-lg text-sm font-medium`}>{confirmLabel}</button>
+      </div>
+    </div>
+  </div>
+);
 
 function Recipe() {
   const [user, setUsers] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
-
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newRecipe, setNewRecipe] = useState({
-    name: "",
-    cuisine: "",
-    rating: "",
-    image: ""
-  });
-
+  const [newRecipe, setNewRecipe] = useState({ name: "", cuisine: "", rating: "", image: "" });
   const [showEditModal, setShowEditModal] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [editRecipe, setEditRecipe] = useState({
-    name: "",
-    cuisine: "",
-    rating: "",
-  });
+  const [editRecipe, setEditRecipe] = useState({ name: "", cuisine: "", rating: "" });
+  const [search, setSearch] = useState("");
 
-
-  useEffect(() => {
-    fetchData()
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
     try {
@@ -38,422 +37,179 @@ function Recipe() {
     } catch (error) {
       console.log(error.message);
     }
-  }
-
-  const openDeleteModal = (id) => {
-    setDeleteId(id);
-    setShowDeleteModal(true);
   };
 
+  const filtered = user.filter(r =>
+    r.name.toLowerCase().includes(search.toLowerCase()) ||
+    r.cuisine.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const openDeleteModal = (id) => { setDeleteId(id); setShowDeleteModal(true); };
   const confirmDelete = () => {
-    const updated = user.filter((item) => item.id !== deleteId);
-    setUsers(updated);
-    setShowDeleteModal(false);
-    setDeleteId(null);
-    toast.error("Item deleted")
+    setUsers(user.filter(item => item.id !== deleteId));
+    setShowDeleteModal(false); setDeleteId(null);
+    toast.error("Recipe deleted");
   };
-
-  const cancelDelete = () => {
-    setShowDeleteModal(false);
-    setDeleteId(null);
-  };
-
-  const openAddModal = () => {
-    setShowAddModal(true);
-  };
+  const cancelDelete = () => { setShowDeleteModal(false); setDeleteId(null); };
 
   const handleAddChange = (e) => {
-  const { name, value } = e.target;
-
-  if (name === "rating") {
-
-    if (value === "") {
-      setNewRecipe(prev => ({
-        ...prev,
-        rating: ""
-      }));
-      return;
+    const { name, value } = e.target;
+    if (name === "rating") {
+      if (value === "") { setNewRecipe(prev => ({ ...prev, rating: "" })); return; }
+      if (!/^\d*\.?\d*$/.test(value)) return;
+      const num = parseFloat(value);
+      if (!isNaN(num) && num > 5) return;
     }
+    setNewRecipe(prev => ({ ...prev, [name]: value }));
+  };
 
-    const ratingRegex = /^(?:[1-4](?:\.\d)?|5(?:\.0)?)$/;
-
-    if (!ratingRegex.test(value)) {
-      return;
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    if (name === "rating") {
+      if (value === "") { setEditRecipe(prev => ({ ...prev, rating: "" })); return; }
+      if (!/^\d*\.?\d*$/.test(value)) return;
+      const num = parseFloat(value);
+      if (!isNaN(num) && num > 5) return;
     }
-  }
-
-  setNewRecipe((prev) => ({
-    ...prev,
-    [name]: value
-  }));
-};
-
- const handleEditChange = (e) => {
-  const { name, value } = e.target;
-
-  if (name === "rating") {
-
-    if (value === "") {
-      setEditRecipe(prev => ({
-        ...prev,
-        rating: ""
-      }));
-      return;
-    }
-
-    const ratingRegex = /^(?:[1-4](?:\.\d)?|5(?:\.0)?)$/;
-
-    if (!ratingRegex.test(value)) {
-      return; 
-    }
-  }
-
-  setEditRecipe(prev => ({
-    ...prev,
-    [name]: value
-  }));
-};
-
+    setEditRecipe(prev => ({ ...prev, [name]: value }));
+  };
 
   const confirmAdd = () => {
-    if (!newRecipe.name || !newRecipe.cuisine) {
-      toast.error("Name and Cuisine are required");
-      return;
-    }
-
+    if (!newRecipe.name || !newRecipe.cuisine) { toast.error("Name and Cuisine are required"); return; }
+    if (!newRecipe.rating) { toast.error("Rating is required"); return; }
     const ratingNumber = Number(newRecipe.rating);
-    
-    if (!newRecipe.rating) {
-    toast.error("Rating is required");
-    return;}
-
-    if (ratingNumber < 1 || ratingNumber > 5) {
-    toast.error("Rating must be between 1 and 5");
-    return;
-  }
-
-  const decimalPart = newRecipe.rating.toString().split(".")[1];
-  if (decimalPart && decimalPart.length > 1) {
-    toast.error("Only one decimal place allowed (e.g., 4.5)");
-    return;
-  }
-
-    const newId =
-      user.length > 0
-        ? Math.max(...user.map((item) => item.id)) + 1
-        : 1;
-
-    const createdRecipe = {
-      id: newId,
-      name: newRecipe.name,
-      cuisine: newRecipe.cuisine,
+    if (ratingNumber < 1 || ratingNumber > 5) { toast.error("Rating must be between 1 and 5"); return; }
+    const decimalPart = newRecipe.rating.toString().split(".")[1];
+    if (decimalPart && decimalPart.length > 1) { toast.error("Only one decimal place allowed"); return; }
+    const newId = user.length > 0 ? Math.max(...user.map(item => item.id)) + 1 : 1;
+    setUsers(prev => [...prev, {
+      id: newId, name: newRecipe.name, cuisine: newRecipe.cuisine,
       rating: newRecipe.rating || 0,
-      image:
-        newRecipe.image ||
-        `https://cdn.dummyjson.com/recipe-images/${newId}.webp`
-    };
-
-    setUsers((prev) => [...prev, createdRecipe]);
-
+      image: newRecipe.image || `https://cdn.dummyjson.com/recipe-images/${newId}.webp`
+    }]);
     setShowAddModal(false);
-    setNewRecipe({
-      name: "",
-      cuisine: "",
-      rating: "",
-      image: ""
-    });
-    toast.success("Recipe Added")
+    setNewRecipe({ name: "", cuisine: "", rating: "", image: "" });
+    toast.success("Recipe Added");
   };
 
   const cancelAdd = () => {
     setShowAddModal(false);
-    setNewRecipe({
-      name: "",
-      cuisine: "",
-      rating: "",
-      image: ""
-    });
+    setNewRecipe({ name: "", cuisine: "", rating: "", image: "" });
   };
 
   const openEditModel = (id) => {
-
     const selected = user.find(item => item.id === id);
-
     setEditId(id);
-    setEditRecipe({
-      name: selected.name,
-      cuisine: selected.cuisine,
-      rating: selected.rating,
-    });
-
-    setShowEditModal(true)
-  }
+    setEditRecipe({ name: selected.name, cuisine: selected.cuisine, rating: selected.rating });
+    setShowEditModal(true);
+  };
 
   const confirmEdit = () => {
+    if (!editRecipe.name || !editRecipe.cuisine) { toast.error("Name and Cuisine are required"); return; }
+    if (!editRecipe.rating) { toast.error("Rating is required"); return; }
     const ratingNumber = Number(editRecipe.rating);
-
-   if (ratingNumber < 1 || ratingNumber > 5) {
-      toast.error("Rating must be between 1 and 5");
-      return;
-    }
- 
-     const decimalPart = editRecipe.rating.toString().split(".")[1];
-
-  if (decimalPart && decimalPart.length > 1) {
-    toast.error("Only one decimal place allowed (e.g., 4.5)");
-    return;
-  }
-
-    
-    const updated = user.map((item) =>
-      item.id === editId ? { ...item, name: editRecipe.name, cuisine: editRecipe.cuisine, rating: ratingNumber } : item
-    );
-
-    setUsers(updated);
-    setShowEditModal(false);
-    setEditId(null);
-    toast.success("Edited Sucessfully")
+    if (ratingNumber < 1 || ratingNumber > 5) { toast.error("Rating must be between 1 and 5"); return; }
+    const decimalPart = editRecipe.rating.toString().split(".")[1];
+    if (decimalPart && decimalPart.length > 1) { toast.error("Only one decimal place allowed"); return; }
+    setUsers(user.map(item => item.id === editId ? { ...item, ...editRecipe, rating: ratingNumber } : item));
+    setShowEditModal(false); setEditId(null);
+    toast.success("Edited Successfully");
   };
 
+  const cancelEdit = () => { setShowEditModal(false); setEditId(null); };
 
-  const cancelEdit = () => {
-    setShowEditModal(false);
-    setEditId(null)
-  };
-
+  const inputClass = "w-full border border-gray-200 p-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-300";
 
   return (
-    <div className="min-h-screen p-6">
-      <h1 className="text-3xl font-bold text-center mb-8">
-        Recipe Cards
-      </h1>
+    <div className="min-h-screen bg-gray-50 p-6">
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      {/* Header Row */}
+      <div className="max-w-7xl mx-auto mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <h1 className="text-3xl font-bold text-gray-800">🍽️ Recipes</h1>
+        <div className="flex gap-3 w-full sm:w-auto">
+          <input
+            type="text"
+            placeholder="Search by name or cuisine..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="border border-gray-200 rounded-xl px-4 py-2 text-sm w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-blue-300"
+          />
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2 bg-blue-800 hover:bg-blue-900 text-white px-4 py-2 rounded-xl text-sm font-medium transition"
+          >
+            <FaPlus /> Add
+          </button>
+        </div>
+      </div>
 
-        {user.map((recipe) => (
-          <div key={recipe.id} className="bg-white rounded-xl shadow-md hover:shadow-xl transition duration-300 overflow-hidden relative">
+      {/* Grid */}
+      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {filtered.map((recipe) => (
+          <div key={recipe.id} className="bg-white rounded-2xl shadow-sm hover:shadow-lg transition duration-300 overflow-hidden relative group">
 
-            <div className="absolute bottom-24 right-9  text-blue-600  hover:text-blue-800 z-10">
-
+            <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition z-10">
               <button
-                onClick={(e) => openEditModel(recipe.id, e)}
+                onClick={() => openEditModel(recipe.id)}
+                className="bg-white p-1.5 rounded-lg shadow text-blue-600 hover:text-blue-800"
               >
-                <FaEdit className="cursor-pointer" />
+                <FaEdit size={13} />
               </button>
-            </div>
-
-            <div className="absolute bottom-24 right-3  text-red-600  hover:text-red-800 z-10">
               <button
                 onClick={() => openDeleteModal(recipe.id)}
+                className="bg-white p-1.5 rounded-lg shadow text-red-500 hover:text-red-700"
               >
-                <FaTrash className="cursor-pointer" />
+                <FaTrash size={13} />
               </button>
             </div>
 
-            <Link to={`/recipe/${recipe.id}`} key={recipe.id}>
-
-              <img
-                src={recipe.image}
-                alt={recipe.name}
-                className="w-full h-48 object-cover "
-              />
-
+            <Link to={`/recipe/${recipe.id}`}>
+              <img src={recipe.image} alt={recipe.name} className="w-full h-48 object-cover" />
               <div className="p-4">
-
-                <h3 className="text-lg font-semibold mt-4 text-center"  >
-
-                  {recipe.name}
-                </h3>
-                <p className="text-gray-600 text-sm mt-2 text-center">
-                  Rating: {recipe.rating}
-                </p>
-
-                <p className="text-center">
-                  Cuisine: {recipe.cuisine}
-                </p>
+                <h3 className="text-base font-semibold text-gray-800 truncate">{recipe.name}</h3>
+                <p className="text-sm text-gray-500 mt-1">🌍 {recipe.cuisine}</p>
+                <div className="flex justify-between items-center mt-3">
+                  <span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-lg">⭐ {recipe.rating}</span>
+                </div>
               </div>
             </Link>
           </div>
         ))}
-
-        <div
-          onClick={openAddModal}
-          className="bg-white rounded-xl shadow-md hover:shadow-xl 
-                     transition duration-300 overflow-hidden 
-                     flex items-center justify-center cursor-pointer"
-        >
-          <div className="p-4 flex flex-col items-center justify-center">
-            <FaPlus className="text-3xl text-gray-500 mb-2" />
-            <p className="text-gray-600 font-semibold">Add Recipe</p>
-          </div>
-        </div>
-
       </div>
 
+      {/* No results */}
+      {filtered.length === 0 && (
+        <p className="text-center text-gray-400 mt-20 text-lg">No recipes found for "{search}"</p>
+      )}
+
+      {/* Delete Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 flex items-center justify-center 
-                        bg-white/30 backdrop-blur-sm z-50">
-
-          <div className="bg-white rounded-xl shadow-2xl p-6 w-80 text-center">
-            <h2 className="text-xl font-bold mb-4 text-red-600">
-              Delete Recipe
-            </h2>
-
-            <p className="mb-6 text-gray-600">
-              Are you sure you want to delete this recipe?
-            </p>
-
-            <div className="flex justify-center gap-6">
-              <button
-                onClick={cancelDelete}
-                className="px-4 py-2 bg-gray-300 rounded"
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={confirmDelete}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-              >
-                Yes, Delete
-              </button>
-            </div>
-          </div>
-        </div>
+        <Modal title="Delete Recipe" titleColor="text-red-600" onCancel={cancelDelete} onConfirm={confirmDelete} confirmLabel="Yes, Delete" confirmColor="bg-red-600 hover:bg-red-700">
+          <p className="text-center text-gray-500 text-sm">Are you sure you want to delete this recipe?</p>
+        </Modal>
       )}
 
+      {/* Add Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 flex items-center justify-center 
-                        bg-white/30 backdrop-blur-sm z-50">
-
-          <div className="bg-white rounded-xl shadow-2xl p-6 w-96">
-            <h2 className="text-xl font-bold mb-4 text-green-600 text-center">
-              Add New Recipe
-            </h2>
-
-            <div className="space-y-3">
-
-              <input
-                type="text"
-                name="name"
-                placeholder="Recipe Name"
-                value={newRecipe.name}
-                onChange={handleAddChange}
-                className="w-full border p-2 rounded"
-              />
-
-              <input
-                type="text"
-                name="cuisine"
-                placeholder="Cuisine"
-                value={newRecipe.cuisine}
-                onChange={handleAddChange}
-                className="w-full border p-2 rounded"
-              />
-
-              <input
-                type="number"
-                name="rating"
-                min="1"
-                max="5"
-                step="0.1"
-                placeholder="Rating"
-                value={newRecipe.rating}
-                onChange={handleAddChange}
-                className="w-full border p-2 rounded"
-              />
-
-              <input
-                type="text"
-                name="image"
-                placeholder="Image URL (optional)"
-                value={newRecipe.image}
-                onChange={handleAddChange}
-                className="w-full border p-2 rounded"
-              />
-
-            </div>
-
-            <div className="flex justify-center gap-6 mt-6">
-              <button
-                onClick={cancelAdd}
-                className="px-4 py-2 bg-gray-300 rounded"
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={confirmAdd}
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-              >
-                Add Recipe
-              </button>
-            </div>
-
+        <Modal title="Add New Recipe" titleColor="text-green-600" onCancel={cancelAdd} onConfirm={confirmAdd} confirmLabel="Add Recipe" confirmColor="bg-green-600 hover:bg-green-700">
+          <div className="space-y-3">
+            <input type="text" name="name" placeholder="Recipe Name" value={newRecipe.name} onChange={handleAddChange} className={inputClass} />
+            <input type="text" name="cuisine" placeholder="Cuisine" value={newRecipe.cuisine} onChange={handleAddChange} className={inputClass} />
+            <input type="text" name="rating" placeholder="Rating (1-5)" value={newRecipe.rating} onChange={handleAddChange} className={inputClass} />
+            <input type="text" name="image" placeholder="Image URL (optional)" value={newRecipe.image} onChange={handleAddChange} className={inputClass} />
           </div>
-        </div>
+        </Modal>
       )}
 
+      {/* Edit Modal */}
       {showEditModal && (
-        <div className="fixed inset-0 flex items-center justify-center 
-                        bg-white/30 backdrop-blur-sm z-50">
-
-          <div className="bg-white rounded-xl shadow-2xl p-6 w-96">
-            <h2 className="text-xl font-bold mb-4 text-green-600 text-center">
-              Edit Recipe
-            </h2>
-
-            <div className="space-y-3">
-
-              <input
-                type="text"
-                name="name"
-                placeholder=""
-                value={editRecipe.name}
-                onChange={handleEditChange}
-                className="w-full border p-2 rounded"
-              />
-
-              <input
-                type="text"
-                name="cuisine"
-                placeholder=""
-                value={editRecipe.cuisine}
-                onChange={handleEditChange}
-                className="w-full border p-2 rounded"
-              />
-
-              <input
-                type="number"
-                name="rating"
-                step="0.5"
-                value={editRecipe.rating}
-                onChange={handleEditChange}
-                className="w-full border p-2 rounded"
-              />
-
-
-
-            </div>
-
-            <div className="flex justify-center gap-6 mt-6">
-              <button
-                onClick={cancelEdit}
-                className="px-4 py-2 bg-gray-300 rounded"
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={confirmEdit}
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-              >
-                Save Changes
-              </button>
-            </div>
-
+        <Modal title="Edit Recipe" titleColor="text-blue-600" onCancel={cancelEdit} onConfirm={confirmEdit} confirmLabel="Save Changes" confirmColor="bg-blue-600 hover:bg-blue-700">
+          <div className="space-y-3">
+            <input type="text" name="name" placeholder="Recipe Name" value={editRecipe.name} onChange={handleEditChange} className={inputClass} />
+            <input type="text" name="cuisine" placeholder="Cuisine" value={editRecipe.cuisine} onChange={handleEditChange} className={inputClass} />
+            <input type="text" name="rating" placeholder="Rating (1-5)" value={editRecipe.rating} onChange={handleEditChange} className={inputClass} />
           </div>
-        </div>
+        </Modal>
       )}
 
     </div>
