@@ -31,6 +31,8 @@ A modern recipe management web app built with React. Browse, search, and manage 
 - **Notifications** — React Toastify
 - **API** — [DummyJSON Recipes](https://dummyjson.com/recipes)
 
+## 📁 Project Structure
+
 src/
 ├── componets/
 │   ├── About.jsx
@@ -99,4 +101,4 @@ This project is open source and available under the [MIT License](LICENSE).
 > Built with ❤️ by [Kishore](https://github.com/Kirushonthu)
 ---
 
-## 📁 Project Structure
+
