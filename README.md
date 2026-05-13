@@ -1,44 +1,102 @@
-# 🍽️ Resyp
+# 🍽️ Resyp — Recipe Discovery App
 
-Resyp is a dynamic recipe discovery web application built with React.  
-Users can browse recipes, view detailed information, and access protected pages after authentication.
+A modern recipe management web app built with React. Browse, search, and manage recipes with a clean UI and secure authentication.
 
----
-
-## 🚀 Features
-
-- 🔐 Login & Logout Authentication
-- 🛡️ Protected Routes (React Router)
-- 📦 Dynamic Routing (`/recipe/:id`)
-- 🌐 API Integration (DummyJSON Recipes)
-- 📊 Detailed Recipe View (Ingredients, Rating, Cuisine)
-- 🔔 Toast Notifications
-- 🎨 Responsive UI (Tailwind CSS)
+🔗 **Live Demo:** [resyp.vercel.app](https://resyp-frontend.vercel.app/)  
+👨‍💻 **Developer:** [Kish](https://github.com/Kirushonthu)
 
 ---
 
-## 🛠 Tech Stack
+## ✨ Features
 
-- React
-- React Router DOM
-- Axios
-- React Toastify
-- Tailwind CSS
-
----
-
-## 📡 API
-
-Data fetched from:
-
-https://dummyjson.com/recipes
+| Feature | Description |
+|--------|-------------|
+| 🔐 Authentication | JWT-based login & logout with protected routes |
+| 🍳 Recipe Browsing | Browse 50+ recipes from multiple cuisines |
+| 🔍 Search | Filter recipes by name or cuisine in real time |
+| ➕ CRUD Operations | Add, edit, and delete recipes |
+| 📖 Recipe Details | Full view with ingredients, instructions, calories & more |
+| 🛡️ Protected Routes | Unauthorized users are redirected to login |
+| 🔔 Toast Notifications | Success & error feedback on all actions |
+| 📱 Responsive Design | Works seamlessly on mobile and desktop |
 
 ---
 
-## ▶️ Installation
+## 🛠️ Tech Stack
+
+- **Frontend** — React 18 + Vite
+- **Routing** — React Router DOM v6
+- **HTTP Client** — Axios
+- **Styling** — Tailwind CSS
+- **Notifications** — React Toastify
+- **API** — [DummyJSON Recipes](https://dummyjson.com/recipes)
+
+src/
+├── componets/
+│   ├── About.jsx
+│   ├── Contact.jsx
+│   ├── RecipeDetails.jsx
+│   ├── Services.jsx
+│   └── login-page/
+│       ├── Form.jsx
+│       └── Protectedroute.jsx
+├── home/
+│   ├── Footer.jsx
+│   ├── Header.jsx
+│   ├── Home.jsx
+│   └── Recipe.jsx
+├── App.jsx
+└── main.jsx
+
+---
+
+## 📡 API Reference
+
+Base URL: `https://dummyjson.com/recipes`
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/recipes` | GET | Fetch all recipes |
+| `/recipes/:id` | GET | Fetch single recipe by ID |
+
+---
+
+## ▶️ Getting Started
 
 ```bash
-git clone https://github.com/your-username/resyp.git
-cd resyp
+# Clone the repository
+git clone https://github.com/Kirushonthu/Resyp-frontend.git
+
+# Navigate to project
+cd Resyp-frontend
+
+# Install dependencies
 npm install
-npm start
+
+# Start development server
+npm run dev
+```
+
+---
+
+## 📸 Pages
+
+- `/` — Home page with featured recipes
+- `/recipes` — Full recipe listing with search & CRUD
+- `/recipe/:id` — Detailed recipe view
+- `/about` — About the app
+- `/services` — Features & services
+- `/contact` — Contact form & developer info
+
+---
+
+## 📄 License
+
+This project is open source and available under the [MIT License](LICENSE).
+
+---
+
+> Built with ❤️ by [Kishore](https://github.com/Kirushonthu)
+---
+
+## 📁 Project Structure
